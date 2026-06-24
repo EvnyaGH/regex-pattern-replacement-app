@@ -221,7 +221,7 @@ Public URLs will be added here after the external deployments are created:
 
 ```text
 Frontend URL: pending
-Backend URL: pending
+Backend URL: https://regex-pattern-replacement-api.onrender.com
 ```
 
 Follow `docs/deployment.md` to deploy the backend first, deploy the frontend

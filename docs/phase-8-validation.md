@@ -34,8 +34,9 @@ production-safe configuration and repeatable instructions.
 
 - [x] Repository published publicly at
   `https://github.com/EvnyaGH/regex-pattern-replacement-app`.
-- [ ] Render Blueprint applied.
-- [ ] Render health endpoint publicly returns `{"status":"ok"}`.
+- [x] Render Blueprint applied.
+- [x] Render health endpoint publicly returns `{"status":"ok"}` at
+  `https://regex-pattern-replacement-api.onrender.com/api/health`.
 - [ ] Vercel project deployed from the `frontend` root directory.
 - [ ] `VITE_API_BASE_URL` points to the Render `/api` URL.
 - [ ] Render CORS origin points to the exact Vercel production origin.
