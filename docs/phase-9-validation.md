@@ -42,8 +42,9 @@ Phase 9 prepares the repository for public use and ongoing development.
 
 ## Remaining Publication Item
 
-- [ ] Record and publish the demo video.
-- [ ] Add the final video URL to README and `docs/demo.md`.
+- [x] Record and publish the demo video:
+  `https://youtu.be/DC5qSZYgeh8`.
+- [x] Add the final video URL to README and `docs/demo.md`.
 
-The documentation set is complete for source publication. Phase 9 is fully
-accepted after the public demo video URL is added and verified.
+Phase 9 is accepted. The public project documentation, deployment record, and
+README-linked demo-video deliverable are complete.

@@ -4,6 +4,10 @@
 
 https://regex-pattern-replacement-app.vercel.app
 
+## Demo Video
+
+https://youtu.be/DC5qSZYgeh8
+
 The Render backend can require a cold start after inactivity. If the first
 request times out, wait briefly and retry once.
 
@@ -66,6 +70,8 @@ A concise public demonstration can be recorded in about three minutes:
 - [ ] Real OpenAI provider behavior is visible.
 - [ ] Public URLs are readable.
 - [ ] Captions or clear narration are included.
-- [ ] Published video URL is added to README and this document.
+- [x] Published video URL is added to README and this document.
 
-Demo video URL: not published yet.
+The video link was confirmed publicly accessible on 2026-06-24. The content
+checklist above remains available for a final publisher review before
+submission.

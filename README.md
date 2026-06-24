@@ -14,6 +14,10 @@ regular expression, and apply the replacement to a selected column.
 The backend runs on Render's free tier, so the first request after inactivity
 can take longer than usual.
 
+## Demo Video
+
+[Watch the Regex Pattern Replacement demonstration on YouTube](https://youtu.be/DC5qSZYgeh8)
+
 ## Features
 
 - Upload `.csv` and `.xlsx` files up to the configured size limit.
