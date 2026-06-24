@@ -32,7 +32,8 @@ production-safe configuration and repeatable instructions.
 
 ## External Deployment
 
-- [ ] Repository published to a supported Git provider.
+- [x] Repository published publicly at
+  `https://github.com/EvnyaGH/regex-pattern-replacement-app`.
 - [ ] Render Blueprint applied.
 - [ ] Render health endpoint publicly returns `{"status":"ok"}`.
 - [ ] Vercel project deployed from the `frontend` root directory.

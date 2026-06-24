@@ -4,6 +4,8 @@ This project is a Django + React web application for uploading CSV/Excel files, 
 
 The project is based on the technical assessment brief: `Web Application for Regex Pattern Matching and Replacement.pdf`.
 
+Repository: https://github.com/EvnyaGH/regex-pattern-replacement-app
+
 ## Current Status
 
 Phase 8 deployment preparation is implemented:
@@ -27,7 +29,8 @@ Phase 8 deployment preparation is implemented:
 - A real OpenAI smoke test successfully generated and validated an Australian mobile-number regex.
 - Render and Vercel deployment configuration is versioned in the repository.
 - Django production settings include HTTPS, host, secret, static-file, and CORS controls.
-- Public deployment remains pending the external Git-provider, Render, and Vercel account steps.
+- The source repository is public on GitHub.
+- Public application deployment remains pending the Render and Vercel account steps.
 
 ## MVP Scope
 
