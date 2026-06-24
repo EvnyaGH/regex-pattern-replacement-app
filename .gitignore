@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+db.sqlite3
+staticfiles/
+dist/
+node_modules/
+.vite/
+.npm-cache/
+*.tsbuildinfo
+.DS_Store

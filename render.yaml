@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: regex-pattern-replacement-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.13
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_PRODUCTION
+        value: "true"
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+      - key: LLM_PROVIDER
+        value: openai
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: gpt-5.5
+      - key: LLM_TIMEOUT_SECONDS
+        value: "20"
+      - key: LLM_MAX_RETRIES
+        value: "1"
+      - key: LLM_MAX_OUTPUT_TOKENS
+        value: "2000"
+      - key: LLM_REASONING_EFFORT
+        value: low
