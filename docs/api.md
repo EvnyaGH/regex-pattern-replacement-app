@@ -1,12 +1,18 @@
-# API Sketch
+# API Reference
 
-This document records the initial API design for Phase 0. The contracts may be refined during implementation, but each change should be documented here.
+The Django Ninja API exposes health, file preview, full-file processing, regex
+generation, and lower-level row replacement endpoints.
 
-Base URL during local development:
+Base URLs:
 
 ```text
-http://127.0.0.1:8000/api
+Local:      http://127.0.0.1:8000/api
+Production: https://regex-pattern-replacement-api.onrender.com/api
 ```
+
+Interactive production documentation:
+
+https://regex-pattern-replacement-api.onrender.com/api/docs
 
 ## Common Error Shape
 
@@ -26,8 +32,6 @@ Missing fields and invalid field types return HTTP 422 with `REQUEST_VALIDATION_
 
 Checks whether the backend is running.
 
-Implementation status: implemented in Phase 1.
-
 ### Success Response
 
 ```json
@@ -43,8 +47,6 @@ Implementation status: implemented in Phase 1.
 ## POST /files/preview
 
 Uploads a CSV or Excel file and returns preview data.
-
-Implementation status: implemented in Phase 2.
 
 ### Request
 
@@ -95,8 +97,6 @@ Constraints:
 
 Re-uploads the original CSV or Excel file, applies regex replacement to every row, and returns a limited processed preview plus full-file statistics.
 
-Implementation status: implemented in Phase 6.
-
 ### Request
 
 Content type:
@@ -142,8 +142,6 @@ The complete file is processed. `preview_limit` limits only the response rows, n
 ## POST /regex/generate
 
 Generates a regex pattern from natural language.
-
-Implementation status: mock provider implemented in Phase 3; OpenAI provider implemented in Phase 7.5.
 
 Provider behavior:
 
@@ -195,9 +193,7 @@ Provider behavior:
 
 Applies a regex replacement to rows supplied as JSON. This remains the lower-level row transformation endpoint; the frontend uses `/files/process` so replacement covers the complete uploaded file.
 
-Implementation status: implemented in Phase 4.
-
-Phase 4 behavior:
+Replacement behavior:
 
 - Regex is applied only to `target_column`.
 - Non-target columns are preserved.
@@ -254,10 +250,9 @@ No matches found should return HTTP 200 with:
 }
 ```
 
-## Future Optional API
+## Planned API
 
 ## POST /files/export
 
-Exports processed rows as CSV or Excel.
-
-CSV export is an MVP-final feature after the core flow is stable. Excel export is optional.
+Processed-file export is not implemented. CSV export is the next planned
+addition; Excel export remains optional.

@@ -2,7 +2,7 @@
 
 ## Current Status
 
-Phase 7.5 implements two interchangeable regex-generation providers:
+The application supports two interchangeable regex-generation providers:
 
 - `mock`: deterministic email-only generation for tests and offline development.
 - `openai`: real model generation through the OpenAI Responses API.
@@ -35,7 +35,7 @@ Every generated regex is checked locally for:
 
 ## Mock Provider
 
-The mock provider remains the default because automated tests must not require:
+The mock provider remains the local default because automated tests must not require:
 
 - network access;
 - API credentials;

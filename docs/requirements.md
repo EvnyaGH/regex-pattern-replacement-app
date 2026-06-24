@@ -1,120 +1,115 @@
-# Requirements and Scope
+# Product Scope
 
-## Source Brief
+## Product Goal
 
-The project is based on the PDF task brief titled `Web Application for Regex Pattern Matching and Replacement`.
+Provide a focused workflow for identifying and replacing text patterns in
+tabular files without requiring users to write a regular expression from
+scratch.
 
-The brief asks for a Django and React web application that allows users to:
+## Current Release
 
-- Upload CSV or Excel files.
-- Identify patterns in text columns using natural language input.
-- Use an LLM to convert natural language into a regex pattern.
-- Replace matched patterns.
-- Display processed data.
-- Submit source code through GitHub.
-- Provide a README.
-- Deploy the final application to a publicly accessible environment.
-- Include a demo video embedded in the GitHub README.
+### File Input
 
-## MVP Functional Requirements
-
-### File Upload
-
-- The user can upload a `.csv` file.
-- The user can upload a `.xlsx` file.
-- The backend parses the uploaded file.
-- The frontend displays a tabular preview.
-- The preview includes column names and row data.
+- Accept `.csv` and `.xlsx`.
+- Reject unsupported, empty, corrupt, oversized, or over-limit files.
+- Return column names, preview rows, total row count, and filename.
+- Preserve non-target columns during replacement.
 
 ### Pattern Generation
 
-- The user can choose a target column.
-- The user can describe the pattern to find in natural language.
-- The backend can generate a regex pattern from the natural language description.
-- The backend supports deterministic mock generation and real OpenAI generation selected by environment configuration.
-- The generated regex is returned to the frontend for review.
+- Accept a natural-language pattern description.
+- Accept the selected target column and representative sample values.
+- Support deterministic mock generation for offline development.
+- Support OpenAI generation through the Responses API.
+- Return a Python-compatible regex, explanation, and provider name.
+- Validate regex length and compilation before returning it.
 
 ### Replacement
 
-- The user can specify a replacement value.
-- The backend applies the regex to the selected text column.
-- The backend returns processed rows.
-- The backend returns replacement statistics, including replacement count and affected row count.
+- Apply replacement only to the selected column.
+- Process every row in the uploaded file.
+- Allow an empty replacement to delete matches.
+- Return a limited processed preview.
+- Return total replacement and affected-row counts for the complete file.
 
-### Display
+### Interface
 
-- The frontend displays uploaded preview data.
-- The frontend displays generated regex output.
-- The frontend displays processed output data.
-- The frontend displays clear loading and error states.
+- Provide clear loading, success, empty, and error states.
+- Keep the interface available after API or rendering failures.
+- Reset dependent state when a new file or target column is selected.
+- Work on desktop and narrow browser widths.
 
-### CSV Export
+### Operations
 
-- After the core replacement flow works, the user can download processed data as CSV.
-- CSV export is an MVP-final feature, not a blocker for the first end-to-end replacement flow.
-- Excel export remains optional.
+- Provide deterministic automated backend tests.
+- Provide strict TypeScript and production-build checks.
+- Keep secrets outside source control.
+- Support public HTTPS deployment with exact-origin CORS.
+- Document local setup, deployment, API behavior, privacy, and limits.
 
-### Delivery
+## Quality Attributes
 
-- The project includes a README.
-- The project includes setup instructions.
-- The project includes test instructions.
-- The project includes a public deployment URL.
-- The project includes a demo video link or embed.
+- Service-layer business logic remains testable without HTTP.
+- API request and response contracts are typed.
+- Client-visible errors use stable codes and corrective messages.
+- File processing is stateless and does not persist uploaded content.
+- External LLM failures do not become unhandled server errors.
+- Production settings are controlled through environment variables.
 
-## Non-Functional Requirements
+## Configured Boundaries
 
-- Code should be clean, maintainable, and documented where needed.
-- Backend business logic should be testable outside API route handlers.
-- API responses should be predictable and typed.
-- Error handling should be clear for users and developers.
-- Environment variables should be documented.
-- Real secrets must not be committed.
+Default limits include:
 
-## MVP Acceptance Criteria
+- 5 MB upload size;
+- 200 preview rows;
+- 100,000 processing rows;
+- 1,000-character regex;
+- 20 sample values accepted by the backend;
+- 20-second OpenAI timeout.
 
-The MVP is accepted when:
+See [Error Handling](error-handling.md) for the complete limit table.
 
-- A user can upload a sample CSV containing an `Email` column.
-- The frontend displays the uploaded table.
-- The user can enter: `Find email addresses in the Email column and replace them with 'REDACTED'.`
-- The system generates a valid email regex.
-- The system replaces all email addresses in the selected column with `REDACTED`.
-- The processed table is displayed.
-- The processed table can be downloaded as CSV before final submission, after the core flow is stable.
-- The same flow can be reproduced from README instructions.
+## Not Included
 
-## Explicit Non-Scope for MVP
+- User accounts or authentication.
+- Persistent file or transformation history.
+- Processed-file download.
+- Multiple-column replacement in one operation.
+- Background jobs or streaming large-file processing.
+- Spreadsheet formatting preservation.
+- Regex execution timeout.
+- Automated browser test suite.
 
-The following are not required for the first MVP:
+## Roadmap
 
-- User authentication.
-- Persistent database storage for uploaded files.
-- Multi-user collaboration.
-- Advanced spreadsheet formatting preservation.
-- Full large-file streaming architecture.
-- Background job queue.
-- Multiple LLM providers.
-- Complex regex safety sandbox beyond compile validation and controlled replacement.
+Priorities for the next release:
 
-## Optional Enhancements
+1. Export processed results as CSV.
+2. Add bounded regex execution or a safer engine.
+3. Add automated end-to-end browser tests.
+4. Support multiple selected columns.
+5. Add queued processing for larger files.
 
-Optional enhancements should be considered only after the MVP works end to end:
+## Acceptance Scenarios
 
-- Export processed data as Excel.
-- Support multiple target columns.
-- Support large files with preview limits and chunked processing.
-- Add two extra LLM-powered data transformations, such as phone normalization or date extraction.
-- Add frontend automated tests.
-- Add richer deployment monitoring.
+### Email Redaction
 
-## Open Questions
+1. Upload `samples/email_sample.csv`.
+2. Select the `Email` column.
+3. Generate a regex from `Find email addresses in the Email column`.
+4. Replace matches with `REDACTED`.
+5. Confirm three replacements and unchanged non-target columns.
 
-- Should the user be allowed to edit the generated regex before replacement?
+### Real LLM Generation
 
-Resolved:
+1. Enable the OpenAI provider.
+2. Request a pattern for Australian mobile phone numbers.
+3. Confirm the response identifies `provider=openai`.
+4. Confirm the returned regex compiles locally.
 
-- Hosted-demo upload limit defaults to 5 MB.
-- CSV download remains an MVP-final feature.
-- Backend deployment target is Render and frontend target is Vercel.
-- The real LLM provider is OpenAI through the Responses API; mock remains available for tests.
+### Production Deployment
+
+1. Load the Vercel application over HTTPS.
+2. Confirm the frontend calls the Render `/api` endpoint.
+3. Complete preview, generation, and replacement without CORS or mixed-content
+   errors.

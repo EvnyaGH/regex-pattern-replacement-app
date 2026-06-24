@@ -1,217 +1,158 @@
 # Architecture
 
-## Architecture Goal
+## Overview
 
-The application should keep API routing, business logic, LLM integration, and UI state separate enough that each part can be tested and explained independently.
-
-The core design principle is:
-
-> API routes coordinate requests and responses; service modules perform file parsing, regex generation, and replacement logic.
-
-## High-Level Components
+Regex Pattern Replacement is a stateless web application with three runtime
+components:
 
 ```text
-User Browser
-  |
-  v
-React Frontend
-  |
-  v
-Django Ninja API
-  |
-  +--> File Parsing Service
-  |
-  +--> Regex Generation Service
-  |      |
-  |      +--> Mock LLM Service
-  |      |
-  |      +--> Real LLM Service
-  |
-  +--> Replacement Service
+React frontend on Vercel
+          |
+          | HTTPS
+          v
+Django Ninja API on Render
+          |
+          | HTTPS, when LLM_PROVIDER=openai
+          v
+OpenAI Responses API
 ```
 
-## Data Flow
+The frontend manages interaction state. The backend owns file validation,
+parsing, regex generation, replacement, and API contracts. OpenAI is isolated
+behind a provider boundary so local development and tests can use a
+deterministic mock.
 
-```text
-1. User uploads CSV/Excel file
-2. Frontend sends file to backend preview API
-3. Backend parses file into columns and rows
-4. Frontend renders preview table
-5. User selects target column and enters natural language description
-6. Frontend requests regex generation
-7. Backend regex service returns regex and explanation
-8. User enters replacement value and confirms replacement
-9. Frontend re-uploads the original file with column, regex, and replacement value
-10. Backend parses the complete file and applies regex to every row
-11. Backend returns a limited processed preview and full-file replacement statistics
-12. Frontend renders processed output
-```
-
-## Planned Backend Structure
+## Repository Structure
 
 ```text
 backend/
-  manage.py
-  requirements.txt
-  config/
-    settings.py
-    urls.py
-  api/
-    router.py
-    file_routes.py
-    regex_routes.py
-    health_routes.py
-  schemas/
-    file_schemas.py
-    regex_schemas.py
-    error_schemas.py
-  services/
-    file_parser.py
-    regex_generator.py
-    replacement.py
-    llm_client.py
-  tests/
-    test_file_parser.py
-    test_regex_generator.py
-    test_replacement.py
-    test_api_flow.py
-```
+  api/                    Django Ninja routes and error handlers
+  config/                 Django settings, URL, ASGI, and WSGI configuration
+  schemas/                Typed request and response models
+  scripts/                Quality, production, and live-provider checks
+  services/               Parsing, generation, processing, and replacement
 
-## Planned Frontend Structure
-
-```text
 frontend/
-  package.json
+  scripts/                Windows-compatible Vite launcher
   src/
-    main.tsx
-    App.tsx
-    components/
-      FileUpload.tsx
-      DataPreviewTable.tsx
-      RegexInputPanel.tsx
-      ReplacementPanel.tsx
-      ResultTable.tsx
-      ErrorMessage.tsx
-    services/
-      apiClient.ts
-      fileApi.ts
-      regexApi.ts
-    types/
-      api.ts
+    components/           Table, status, and error-boundary components
+    services/             Typed HTTP client
+    types/                API data contracts
+    App.tsx               Main workflow and UI state
+
+docs/                     Product and engineering documentation
+samples/                  Public sample files
+render.yaml               Render Blueprint
 ```
 
-## Module Responsibilities
+## Request Flow
 
-### React Frontend
+### Preview
 
-- Owns user interactions.
-- Stores current UI state.
-- Sends files and form inputs to the backend.
-- Displays preview data, generated regex, processed output, loading state, and errors.
-- Uses TypeScript to define API response types and UI request states.
-- Implementation status: Phase 5 implemented under `frontend/`.
+1. The browser sends a CSV or XLSX file to `/api/files/preview`.
+2. The backend validates extension, size, parseability, and preview limit.
+3. pandas parses the file and normalizes values for JSON.
+4. The API returns columns, preview rows, total row count, and filename.
 
-### Django Ninja API
+### Regex Generation
 
-- Defines HTTP endpoints.
-- Validates request and response schemas.
-- Calls service-layer functions.
-- Converts service errors into consistent API responses.
-- Uses `requirements.txt` for MVP backend dependency installation.
+1. The browser sends the pattern description, selected column, and up to five
+   sample values to `/api/regex/generate`.
+2. `regex_generator.py` selects the configured provider.
+3. The mock provider returns a deterministic email regex, or the OpenAI
+   provider requests strict structured output.
+4. The backend checks regex length and compiles it with Python `re`.
+5. The API returns the regex, explanation, and provider name.
 
-### File Parsing Service
+### Full-File Replacement
 
-- Accepts uploaded CSV/Excel files.
-- Validates file type and file size.
-- Parses data into columns and rows.
-- Applies preview row limits.
-- Implementation status: Phase 2 implemented in `backend/services/file_parser.py`.
+1. The browser re-uploads the original file to `/api/files/process`.
+2. The backend applies the regex only to the selected column across every row.
+3. The response includes a limited processed preview and full-file statistics.
 
-### File Processing Service
+Re-uploading avoids retaining files or placing the complete dataset in browser
+state.
 
-- Reuses the same upload validation and parsing rules as preview.
-- Applies replacement to all parsed rows.
-- Limits only the processed rows returned to the frontend.
-- Keeps processing stateless by re-uploading the original file.
-- Implementation status: Phase 6 implemented in `backend/services/file_processor.py`.
+## Backend Boundaries
 
-### Regex Generation Service
+### API Layer
 
-- Accepts natural language description, target column, and optional sample values.
-- Calls mock or real LLM provider.
-- Validates that generated regex can compile.
-- Returns regex and explanation.
-- Implementation status: `backend/services/regex_generator.py` selects the mock or OpenAI provider and validates every generated regex.
+`backend/api/` defines HTTP behavior:
 
-### Replacement Service
+- request parsing and schema validation;
+- route-to-service coordination;
+- stable HTTP status mappings;
+- the shared structured error contract.
 
-- Accepts rows, target column, regex, and replacement value.
-- Applies regex replacement only to the selected column.
-- Returns processed rows and statistics.
-- Implementation status: Phase 4 implemented in `backend/services/replacement.py`.
+Business logic remains in services so it can be tested without HTTP.
 
-### LLM Client
+### File Services
 
-- Encapsulates external LLM API calls.
-- Reads API configuration from environment variables.
-- Makes the implementation replaceable.
-- Uses the OpenAI Responses API with strict JSON Schema Structured Outputs.
-- Maps provider failures to stable application error codes.
-- Implementation status: Phase 7.5 implemented in `backend/services/openai_llm.py`.
+`file_parser.py` owns file validation, parsing, preview limits, and JSON-safe
+value conversion.
 
-## Error Handling Strategy
+`file_processor.py` reuses parsing rules and coordinates complete-file
+replacement.
 
-Errors should be returned in a consistent shape:
+### Regex Services
+
+`regex_generator.py` owns provider selection and local output validation.
+
+`openai_llm.py` owns OpenAI SDK calls, Structured Outputs, provider error
+mapping, refusal handling, and incomplete-response handling.
+
+`replacement.py` owns column-scoped substitution and statistics.
+
+## Frontend Boundaries
+
+`App.tsx` coordinates the workflow and owns transient browser state.
+
+`services/apiClient.ts` owns base URL configuration, request timeouts, response
+parsing, and conversion of backend failures into `ApiClientError`.
+
+Components are limited to rendering tables, status messages, and the
+application-level error fallback.
+
+## Data and Persistence
+
+The application has no persistent database because it currently stores no
+users, sessions, files, jobs, or saved transformations.
+
+- Uploaded files exist only during request processing.
+- The frontend retains the selected local `File` object for re-upload.
+- Generated regex and processed rows exist only in browser memory.
+- OpenAI requests use `store=false`.
+
+A database becomes appropriate when the product adds authentication, saved
+projects, job history, audit records, or queued processing.
+
+## Error Contract
+
+Application and validation failures use one response shape:
 
 ```json
 {
   "error": {
-    "code": "INVALID_REGEX",
-    "message": "The generated regex could not be compiled.",
+    "code": "ERROR_CODE",
+    "message": "Human-readable corrective message.",
     "details": {}
   }
 }
 ```
 
-Expected error categories:
+The frontend keeps the interface mounted for API, network, timeout, invalid
+response, and render failures.
 
-- Invalid file type.
-- Empty file.
-- File parsing failure.
-- Missing target column.
-- Empty natural language description.
-- LLM generation failure.
-- Invalid regex.
-- No matches found.
-- Unexpected server error.
+## Production Controls
 
-## Initial Design Decisions
+- `DEBUG=false`
+- explicit Django secret
+- Render hostname validation
+- HTTPS redirect and secure cookies
+- exact-origin CORS
+- WhiteNoise static-file handling
+- upload, row, text, sample, and regex limits
+- OpenAI timeout, retry, reasoning, and output-token limits
 
-- Use Django Ninja instead of plain Django views to keep typed request/response contracts.
-- Use a service layer so parsing, LLM, and replacement logic can be tested without HTTP.
-- Start with a mock LLM to make the project reproducible before real API credentials exist.
-- Return generated regex to the user before replacement for transparency.
-- Avoid persistent file storage in the MVP unless a later phase requires it.
-
-## Deployment Architecture
-
-```text
-Browser
-  |
-  | HTTPS
-  v
-Vercel static frontend
-  |
-  | HTTPS JSON and multipart requests
-  v
-Render Django API
-  |
-  | HTTPS structured-output request
-  v
-OpenAI Responses API
-```
-
-The Render service is stateless. Uploaded files are parsed and processed in
-memory during the request and are not persisted. This keeps the Phase 8
-deployment aligned with the existing service boundaries and avoids introducing
-a database before the application has persistent domain data.
+The main unresolved execution risk is catastrophic regex backtracking. Compile
+and length validation do not provide an execution timeout.

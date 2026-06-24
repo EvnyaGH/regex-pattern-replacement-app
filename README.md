@@ -1,190 +1,111 @@
-# Regex Pattern Replacement Web App
+# Regex Pattern Replacement
 
-This project is a Django + React web application for uploading CSV/Excel files, using natural language to generate regex patterns, and replacing matched values in text columns.
+A web application for finding and replacing structured text patterns in CSV and
+Excel files. Describe a pattern in natural language, inspect the generated
+regular expression, and apply the replacement to a selected column.
 
-The project is based on the technical assessment brief: `Web Application for Regex Pattern Matching and Replacement.pdf`.
+## Live Application
 
-Repository: https://github.com/EvnyaGH/regex-pattern-replacement-app
+- Web app: https://regex-pattern-replacement-app.vercel.app
+- API: https://regex-pattern-replacement-api.onrender.com/api
+- API documentation: https://regex-pattern-replacement-api.onrender.com/api/docs
+- Source: https://github.com/EvnyaGH/regex-pattern-replacement-app
 
-## Current Status
+The backend runs on Render's free tier, so the first request after inactivity
+can take longer than usual.
 
-Phase 8 deployment preparation is implemented:
+## Features
 
-- Django backend project exists under `backend/`.
-- Django Ninja API is configured.
-- `GET /api/health` returns `{"status": "ok"}`.
-- `POST /api/files/preview` accepts `.csv` and `.xlsx` uploads.
-- The preview API returns filename, columns, preview rows, total row count, and preview limit.
-- `POST /api/files/process` re-uploads and processes the complete source file while returning a limited result preview.
-- `POST /api/regex/generate` supports deterministic mock generation or real OpenAI generation.
-- `POST /api/regex/replace` applies a regex to the selected column and returns processed rows.
-- React + Vite + TypeScript frontend exists under `frontend/`.
-- Frontend supports file upload, preview, regex generation, replacement, and result display.
-- Replacement statistics cover every row in the uploaded file, not only the displayed preview.
-- Django system check and backend tests pass.
-- Frontend TypeScript and Vite production build pass with x64 Node.
-- API request validation uses the same structured error contract as service errors.
-- Frontend handles API failures, unavailable backend, timeouts, invalid responses, and render failures without a blank page.
-- OpenAI integration uses the Responses API, strict Structured Outputs, `store=false`, configurable timeout/retries, and local regex validation.
-- A real OpenAI smoke test successfully generated and validated an Australian mobile-number regex.
-- Render and Vercel deployment configuration is versioned in the repository.
-- Django production settings include HTTPS, host, secret, static-file, and CORS controls.
-- The source repository is public on GitHub.
-- The production frontend and backend are publicly deployed and verified.
+- Upload `.csv` and `.xlsx` files up to the configured size limit.
+- Preview columns and rows before processing.
+- Select one target column for transformation.
+- Generate Python-compatible regex from natural-language descriptions.
+- Use deterministic mock generation for offline development.
+- Use OpenAI Responses API with strict Structured Outputs in production.
+- Review the generated regex and explanation before replacement.
+- Replace every match in the complete uploaded file.
+- Display a processed preview, replacement count, and affected-row count.
+- Return structured API errors for invalid files, input, regex, and provider
+  failures.
 
-## MVP Scope
+## How It Works
 
-The minimum viable product will support:
+```text
+Browser
+  |
+  | upload and configuration
+  v
+React + TypeScript frontend
+  |
+  | HTTPS JSON and multipart requests
+  v
+Django Ninja API
+  |
+  +-- file parsing and validation
+  +-- regex generation
+  +-- full-file replacement
+  |
+  +--> OpenAI Responses API
+```
 
-- Uploading CSV and Excel files.
-- Previewing uploaded data as a table.
-- Selecting a target text column.
-- Describing a pattern in natural language.
-- Generating a regex pattern through either the mock or OpenAI provider.
-- Replacing matched values in the selected column.
-- Displaying processed output data.
-- Providing setup instructions, tests, deployment URL, and demo video.
+The service is stateless. Files are processed in memory during each request and
+are not saved by the application. The source file is uploaded once for preview
+and again when the complete replacement is executed.
 
-## Planned Technology Stack
+When the OpenAI provider is enabled, the pattern description, selected column
+name, and a small set of sample values are sent to OpenAI. The request uses
+`store=false`. See [Privacy and Security](docs/privacy-security.md) before
+processing sensitive data.
 
-Backend:
+## Quick Start
 
-- Django
-- Django Ninja
-- pandas
-- openpyxl
-- Python `re`
-- pytest or Django TestCase
+### Requirements
 
-Frontend:
-
-- React
-- Vite
-- TypeScript
-- Plain CSS
-- fetch
-
-Deployment:
-
-- Frontend: Vercel
-- Backend: Render
-
-Runtime:
-
-- Backend Python version: 3.12
-
-## Documentation
-
-Project documentation is maintained under `docs/`.
-
-- `docs/requirements.md`: project requirements, MVP scope, optional scope, and acceptance criteria.
-- `docs/architecture.md`: system architecture, data flow, and module responsibilities.
-- `docs/api.md`: planned API endpoints and request/response contracts.
-- `docs/decision-log.md`: technical decisions and rationale.
-- `docs/llm-integration.md`: mock/OpenAI providers, configuration, Structured Outputs, failures, and smoke testing.
-- `docs/data-processing.md`: preview and complete-file processing behavior.
-- `docs/test-plan.md`: automated coverage and manual frontend checklist.
-- `docs/error-handling.md`: backend/client error matrix and configured limits.
-- `docs/deployment.md`: Render/Vercel deployment procedure and environment variables.
-- `docs/phase-0-validation.md` through `docs/phase-8-validation.md`: phase verification checklists.
-
-## Local Development
+- Python 3.12
+- Node.js 22.12 or newer
+- npm
 
 ### Backend
 
-If this repository is located in a deep Windows path, creating `.venv` inside the project can hit Windows path-length limits during dependency installation. In that case, create the virtual environment in a short path such as `%TEMP%`.
-
-PowerShell example:
-
-```powershell
-$venv = Join-Path $env:TEMP "rrapp-venv"
-python -m venv $venv
-& (Join-Path $venv "Scripts\python.exe") -m pip install -r backend\requirements.txt
-
-Set-Location backend
-& (Join-Path $venv "Scripts\python.exe") manage.py check
-& (Join-Path $venv "Scripts\python.exe") manage.py test
-& (Join-Path $venv "Scripts\python.exe") manage.py runserver
-```
-
-If the project is cloned into a short path, a local project venv is also fine:
+From the repository root:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r backend\requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r .\backend\requirements.txt
+
+Set-Location .\backend
+& "..\.venv\Scripts\python.exe" manage.py runserver
 ```
+
+If PowerShell interprets the relative command above incorrectly, run:
+
+```powershell
+& (Resolve-Path "..\.venv\Scripts\python.exe") manage.py runserver
+```
+
+The local backend starts at `http://127.0.0.1:8000`.
 
 ### Frontend
 
-Use x64 Node `20.19+` or `22.12+`. This workspace is currently validated with Chocolatey-installed Node `24.17.0`:
+In a second terminal:
 
 ```powershell
-& "C:\Program Files\nodejs\node.exe" -p "process.version + ' ' + process.arch + ' ' + process.execPath"
-```
-
-```powershell
-Set-Location frontend
+Set-Location .\frontend
 npm.cmd install
-npm.cmd run build
 npm.cmd run dev
 ```
 
-Use `npm.cmd` directly on PowerShell because the local execution policy may block `npm.ps1`:
+The local frontend starts at `http://127.0.0.1:5173`.
 
-```powershell
-& "C:\Program Files\nodejs\npm.cmd" install
-& "C:\Program Files\nodejs\npm.cmd" run build
-& "C:\Program Files\nodejs\npm.cmd" run dev
-```
+Local development defaults to the deterministic `mock` provider, so no API key
+is required for the email-address example.
 
-The workspace parent directory contains a literal `%`. Vite 7 cannot serve modules directly from that Windows path. The `dev` and `preview` scripts temporarily map the frontend directory to an available Windows drive letter, start Vite through that short path, and remove the mapping when the process exits. Source files remain in the project directory.
+For detailed environment configuration and Windows path notes, see
+[Local Development](docs/local-development.md).
 
-If an existing terminal still cannot find `node` after the Node upgrade, prepend the new install path for that terminal or restart the terminal:
+## OpenAI Provider
 
-```powershell
-$env:PATH = "C:\Program Files\nodejs;$env:PATH"
-node -p "process.version + ' ' + process.arch + ' ' + process.execPath"
-```
-
-Current structure:
-
-```text
-backend/
-frontend/
-samples/
-docs/
-README.md
-.env.example
-```
-
-## Quality Checks
-
-Backend:
-
-```powershell
-Set-Location backend
-& "$env:TEMP\rrapp-venv-phase5\Scripts\python.exe" .\scripts\quality_check.py
-```
-
-Frontend:
-
-```powershell
-Set-Location frontend
-npm.cmd run check
-```
-
-Production-mode backend:
-
-```powershell
-Set-Location backend
-& "$env:TEMP\rrapp-venv-phase5\Scripts\python.exe" .\scripts\production_check.py
-```
-
-## Real LLM
-
-The default provider remains `mock` so local development and automated tests are deterministic.
-
-To use OpenAI in the current PowerShell session:
+Set the variables in the backend process before starting Django:
 
 ```powershell
 $env:LLM_PROVIDER = "openai"
@@ -192,58 +113,131 @@ $env:OPENAI_API_KEY = "<your key>"
 $env:LLM_MODEL = "gpt-5.5"
 ```
 
-Restart the Django backend after setting the variables. Never commit or paste the real API key into source files.
+Never commit an API key. Automated tests use fake OpenAI clients and do not make
+paid requests.
 
-Run one direct real-provider smoke test:
+One explicit live-provider smoke test is available:
 
 ```powershell
-Set-Location backend
-& "$env:TEMP\rrapp-venv-phase5\Scripts\python.exe" .\scripts\openai_smoke_test.py
+Set-Location .\backend
+& "..\.venv\Scripts\python.exe" .\scripts\openai_smoke_test.py
 ```
 
-This command makes a real API request and may incur cost.
+This command makes a real API request and can incur cost.
+
+## Example Workflow
+
+Use the included [`samples/email_sample.csv`](samples/email_sample.csv):
+
+1. Upload the sample file and select **Preview data**.
+2. Select the `Email` column.
+3. Enter `Find email addresses in the Email column`.
+4. Generate the regex.
+5. Set the replacement value to `REDACTED`.
+6. Replace matches.
+7. Confirm three replacements across three rows.
+
+The same flow is available in the
+[public demo](https://regex-pattern-replacement-app.vercel.app).
+
+## API
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/health` | Service health |
+| `POST` | `/api/files/preview` | Validate and preview CSV/XLSX |
+| `POST` | `/api/files/process` | Replace matches across the complete file |
+| `POST` | `/api/regex/generate` | Generate regex from natural language |
+| `POST` | `/api/regex/replace` | Apply replacement to JSON rows |
+
+See [API Reference](docs/api.md) for request, response, and error contracts.
+
+## Quality Checks
+
+Backend:
+
+```powershell
+Set-Location .\backend
+& "..\.venv\Scripts\python.exe" .\scripts\quality_check.py
+& "..\.venv\Scripts\python.exe" .\scripts\production_check.py
+```
+
+Frontend:
+
+```powershell
+Set-Location .\frontend
+npm.cmd run check
+```
+
+Current validation covers 48 backend tests, strict TypeScript compilation,
+Vite production build, Django deployment settings, HTTPS behavior, production
+CORS, and cross-origin API requests.
 
 ## Deployment
 
-The selected production topology is:
-
 - Frontend: Vercel
 - Backend: Render
-- Database: none for the stateless MVP
+- LLM provider: OpenAI
+- Database: not required by the stateless request model
 
-Deployment configuration:
+Deployment configuration is versioned in [`render.yaml`](render.yaml) and
+[`frontend/vercel.json`](frontend/vercel.json). See
+[Deployment](docs/deployment.md) for environment variables, deployment order,
+and production verification.
 
-- `render.yaml`
-- `frontend/vercel.json`
-- `docs/deployment.md`
-
-Public URLs:
+## Project Structure
 
 ```text
-Frontend URL: https://regex-pattern-replacement-app.vercel.app
-Backend URL: https://regex-pattern-replacement-api.onrender.com
-API docs: https://regex-pattern-replacement-api.onrender.com/api/docs
+backend/                 Django Ninja API and service layer
+frontend/                React, TypeScript, and Vite application
+samples/                 Public sample data
+docs/                    Architecture, API, operations, and engineering records
+render.yaml              Render Blueprint
+.env.example             Environment variable reference
 ```
 
-Follow `docs/deployment.md` to deploy the backend first, deploy the frontend
-with the Render API URL, and then restrict Render CORS to the final Vercel
-origin.
+## Documentation
 
-## Demo Flow
+- [Architecture](docs/architecture.md)
+- [API Reference](docs/api.md)
+- [Data Processing](docs/data-processing.md)
+- [LLM Integration](docs/llm-integration.md)
+- [Error Handling](docs/error-handling.md)
+- [Local Development](docs/local-development.md)
+- [Deployment](docs/deployment.md)
+- [Privacy and Security](docs/privacy-security.md)
+- [Demo Guide](docs/demo.md)
+- [Testing](docs/test-plan.md)
+- [Release Notes](docs/release-notes.md)
+- [Decision Log](docs/decision-log.md)
 
-The core demo will reproduce the PDF example:
+Phase validation records under `docs/phase-*-validation.md` preserve the
+implementation and verification history.
 
-1. Upload `samples/email_sample.csv`, which contains an `Email` column.
-2. Enter natural language: `Find email addresses in the Email column and replace them with 'REDACTED'.`
-3. Generate a regex pattern.
-4. Re-upload the original file through the processing API and replace matched email addresses with `REDACTED` across all rows.
-5. Display a processed preview and full-file replacement statistics.
+## Current Limits
 
-## Known Limits
+- The browser displays processed rows but does not yet export a processed CSV.
+- Only one column can be transformed per operation.
+- Python `re` execution has compile and length checks but no execution timeout;
+  untrusted regex can still create ReDoS risk.
+- Processing is in memory and limited by configured upload and row limits.
+- The mock provider supports email-pattern generation only.
+- Frontend validation currently uses TypeScript/build checks and documented
+  browser workflows rather than an automated browser test suite.
 
-- Mock LLM regex generation supports email address patterns only; use `LLM_PROVIDER=openai` for broader descriptions.
-- Automated tests do not send paid OpenAI requests; the separate live smoke test has passed.
-- Render free-tier cold starts can delay the first API request.
-- Processed output is previewed in the browser; CSV download is not implemented yet.
-- Regex is compile-checked and length-limited, but Python `re` execution does not currently have a timeout.
-- Frontend automated browser tests are not included; Phase 7 uses strict TypeScript/build checks and a documented manual checklist.
+## Roadmap
+
+- Export processed data as CSV.
+- Add regex execution timeout or a safer regex engine.
+- Add automated browser tests.
+- Support multiple target columns.
+- Add queued or streaming processing for larger files.
+
+## Contributing
+
+Development workflow and pull-request expectations are documented in
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+Security issues should be reported through the process in
+[SECURITY.md](SECURITY.md), not through a public issue containing secrets or
+sensitive data.
