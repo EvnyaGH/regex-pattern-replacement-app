@@ -165,3 +165,25 @@ Browser workflow:
   remain disabled until a custom-domain policy is deliberately chosen.
 - Increase upload or row limits only after testing memory and request-duration
   behavior on the selected Render instance.
+
+## Production Deployment Record
+
+Deployment completed and verified on 2026-06-24.
+
+| Component | Production URL |
+|---|---|
+| Frontend | `https://regex-pattern-replacement-app.vercel.app` |
+| Backend | `https://regex-pattern-replacement-api.onrender.com` |
+| Health | `https://regex-pattern-replacement-api.onrender.com/api/health` |
+| API docs | `https://regex-pattern-replacement-api.onrender.com/api/docs` |
+
+Verified production behavior:
+
+- Vercel returned the built React application over HTTPS.
+- The frontend bundle contained the correct Render `/api` base URL.
+- Render returned the exact Vercel origin in CORS responses.
+- Cross-origin JSON POST preflight succeeded.
+- `samples/email_sample.csv` returned three preview rows.
+- Full-file processing replaced all three sample email addresses.
+- The deployed OpenAI provider generated a valid Australian mobile-number
+  regex and returned `provider=openai`.

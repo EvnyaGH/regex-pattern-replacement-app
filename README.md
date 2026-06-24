@@ -30,7 +30,7 @@ Phase 8 deployment preparation is implemented:
 - Render and Vercel deployment configuration is versioned in the repository.
 - Django production settings include HTTPS, host, secret, static-file, and CORS controls.
 - The source repository is public on GitHub.
-- Public application deployment remains pending the Render and Vercel account steps.
+- The production frontend and backend are publicly deployed and verified.
 
 ## MVP Scope
 
@@ -217,11 +217,12 @@ Deployment configuration:
 - `frontend/vercel.json`
 - `docs/deployment.md`
 
-Public URLs will be added here after the external deployments are created:
+Public URLs:
 
 ```text
-Frontend URL: pending
+Frontend URL: https://regex-pattern-replacement-app.vercel.app
 Backend URL: https://regex-pattern-replacement-api.onrender.com
+API docs: https://regex-pattern-replacement-api.onrender.com/api/docs
 ```
 
 Follow `docs/deployment.md` to deploy the backend first, deploy the frontend
@@ -242,7 +243,7 @@ The core demo will reproduce the PDF example:
 
 - Mock LLM regex generation supports email address patterns only; use `LLM_PROVIDER=openai` for broader descriptions.
 - Automated tests do not send paid OpenAI requests; the separate live smoke test has passed.
-- Deployment configuration is complete, but public URLs require external platform account setup.
+- Render free-tier cold starts can delay the first API request.
 - Processed output is previewed in the browser; CSV download is not implemented yet.
 - Regex is compile-checked and length-limited, but Python `re` execution does not currently have a timeout.
 - Frontend automated browser tests are not included; Phase 7 uses strict TypeScript/build checks and a documented manual checklist.

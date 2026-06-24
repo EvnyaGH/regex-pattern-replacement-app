@@ -37,14 +37,18 @@ production-safe configuration and repeatable instructions.
 - [x] Render Blueprint applied.
 - [x] Render health endpoint publicly returns `{"status":"ok"}` at
   `https://regex-pattern-replacement-api.onrender.com/api/health`.
-- [ ] Vercel project deployed from the `frontend` root directory.
-- [ ] `VITE_API_BASE_URL` points to the Render `/api` URL.
-- [ ] Render CORS origin points to the exact Vercel production origin.
-- [ ] Public browser workflow passes using `samples/email_sample.csv`.
-- [ ] Public real-OpenAI regex generation passes.
-- [ ] Public URLs are added to README.
+- [x] Vercel project deployed from the `frontend` root directory at
+  `https://regex-pattern-replacement-app.vercel.app`.
+- [x] `VITE_API_BASE_URL` points to the Render `/api` URL.
+- [x] Render CORS origin points to the exact Vercel production origin.
+- [x] Public workflow passes using `samples/email_sample.csv`: three rows
+  previewed and three email values replaced.
+- [x] Public real-OpenAI regex generation passes for Australian mobile
+  numbers.
+- [x] Public URLs are added to README.
 
 ## Acceptance Status
 
-Deployment preparation is code-complete. Phase 8 is accepted only after the
-external deployment checklist is complete and both public URLs are recorded.
+Phase 8 is accepted. Deployment preparation, public endpoints, production
+CORS, file processing, and the real OpenAI provider were all verified on
+2026-06-24.
